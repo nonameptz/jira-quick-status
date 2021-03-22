@@ -38,7 +38,7 @@ async function getJirasText() {
   port.postMessage(message);
 }
 
-// When the button is clicked, inject setPageBackgroundColor into current page
+// When the button is clicked, check selected statuses and get data
 statusButton.addEventListener("click", async () => {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const statuses = [...document.getElementsByName('status[]')]
