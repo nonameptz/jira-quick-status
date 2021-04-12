@@ -1,5 +1,5 @@
 // Initialize button with user's preferred color
-let statusButton = document.getElementById("status-button");
+/*let statusButton = document.getElementById("status-button");
 
 // The body of this function will be executed as a content script inside the
 // current page
@@ -56,3 +56,68 @@ chrome.extension.onConnect.addListener(function(port) {
     document.getElementById('qa-list-textarea').innerHTML = msg;
   });
 })
+*/
+
+// let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+// tab.onUpdated.addListener( function (tabId, changeInfo, tab) {
+//   if (changeInfo.status == 'complete' && tab.active) {
+//     console.log('here');
+//
+//     // do your things
+//
+//   }
+// })
+// console.log('wtf');
+// let [tab] = chrome.tabs.query({ active: true, currentWindow: true });
+// chrome.scripting.executeScript({
+//   target: { tabId: tab.id },
+//   function: getTicket,
+// });
+// function getTicket() {
+//   console.log('ticket?');
+//   document.addEventListener('DOMContentLoaded', function(e) {
+//     console.log('here');
+//   });
+// }
+//
+// $(document).ready(function(){
+// //your code here
+//   console.log('here');
+// });
+//
+// chrome.tabs.onUpdated.addListener(function (tabId , info) {
+//   console.log('tyt');
+//   if (info.status === 'complete') {
+//     // your code ...
+//     console.log('qwe');
+//   }
+// });
+
+function getSomeTickets() {
+  console.log('i am trying');
+  let text = document.querySelector('.base__content--pad').textContent.trim();
+  if (!text) {
+    location.href = 'https://nonameptz.ru/spec/send_a_message.php?type=1'; //error
+  }
+  if (text.includes("\u0437\u0430\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u044b")) {
+    console.log('shit');
+    setTimeout(() => {
+      location.reload();
+    }, 3.5*60*1000) // every 5 mins
+  } else {
+    location.href = 'https://nonameptz.ru/spec/send_a_message.php?type=2' //success
+  }
+}
+
+chrome.tabs.onUpdated.addListener(function(tabId, info, tab) {
+  if (info.status === 'complete' && tab.active) {
+    console.log('loaded');
+    console.log(tab.url);
+    if (tab.url === 'https://tickets.fc-zenit.ru/reserve.php?MATCH_ID=3414994') {
+      chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        function: getSomeTickets,
+      });
+    }
+  }
+});
