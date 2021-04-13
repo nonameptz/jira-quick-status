@@ -94,17 +94,20 @@ chrome.extension.onConnect.addListener(function(port) {
 // });
 
 function getSomeTickets() {
+  fetch('https://nonameptz.ru/spec/send_a_log.php?step=1')
   console.log('i am trying');
   let text = document.querySelector('.base__content--pad').textContent.trim();
   if (!text) {
     location.href = 'https://nonameptz.ru/spec/send_a_message.php?type=1'; //error
   }
   if (text.includes("\u0437\u0430\u0431\u0440\u043e\u043d\u0438\u0440\u043e\u0432\u0430\u043d\u044b")) {
+    fetch('https://nonameptz.ru/spec/send_a_log.php?step=2')
     console.log('shit');
     setTimeout(() => {
       location.reload();
-    }, 3.5*60*1000) // every 5 mins
+    }, 3*60*1000) // every 3 mins
   } else {
+    fetch('https://nonameptz.ru/spec/send_a_log.php?step=3')
     location.href = 'https://nonameptz.ru/spec/send_a_message.php?type=2' //success
   }
 }
