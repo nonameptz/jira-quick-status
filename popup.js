@@ -32,13 +32,30 @@ async function getJirasText() {
     }
     message = issues.flat().join("\n");
   }
-  const port = chrome.extension.connect({
-    name: "Sample Communication"
-  });
-  port.postMessage(message);
+  // count story points
+  const doneId = [...document.getElementsByTagName('h6')]
+    .filter(item => item.innerHTML === 'Done')
+    .map(item => item.offsetParent.dataset['id'])
+    .pop();
+  const qaId = [...document.getElementsByTagName('h6')]
+    .filter(item => item.innerHTML === 'In QA')
+    .map(item => item.offsetParent.dataset['id'])
+    .pop();
+  let doneSum = 0, qaSum = 0;
+  document.querySelectorAll(`li[data-column-id='${doneId}'] .ghx-card-footer`)
+    .forEach((item) => {
+      doneSum += +item.querySelector('.ghx-end aui-badge').innerHTML
+    });
+  document.querySelectorAll(`li[data-column-id='${qaId}'] .ghx-card-footer`)
+    .forEach((item) => {
+      qaSum += +item.querySelector('.ghx-end aui-badge').innerHTML
+    });
+  chrome.runtime.sendMessage({type: "sendJiras", message});
+  chrome.runtime.sendMessage({type: "sendDoneSum", doneSum});
+  chrome.runtime.sendMessage({type: "sendQASum", qaSum});
 }
 
-// When the button is clicked, check selected statuses and get data
+// When the button is clicked, set some
 statusButton.addEventListener("click", async () => {
   let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const statuses = [...document.getElementsByName('status[]')]
@@ -51,8 +68,20 @@ statusButton.addEventListener("click", async () => {
   });
 });
 
-chrome.extension.onConnect.addListener(function(port) {
-  port.onMessage.addListener(function(msg) {
-    document.getElementById('qa-list-textarea').innerHTML = msg;
-  });
-})
+chrome.runtime.onMessage.addListener(
+  function(message) {
+    switch(message.type) {
+      case "sendJiras":
+        document.getElementById('qa-list-textarea').innerHTML = message.message;
+        break;
+      case "sendDoneSum":
+        document.getElementById('story-points-done').innerHTML = `<br />${message.doneSum} story points you have done<br />`;
+        break;
+      case "sendQASum":
+        document.getElementById('story-points-qa').innerHTML = `${message.qaSum} story points in QA<br />`;
+        break;
+      default:
+        console.error("Unrecognised message: ", message);
+    }
+  }
+);
