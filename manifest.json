@@ -3,7 +3,12 @@
   "description": "Get Jira status quickly!",
   "version": "1.0",
   "manifest_version": 3,
-  "permissions": ["storage", "activeTab", "scripting"],
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
   "action": {
     "default_popup": "popup.html"
   }

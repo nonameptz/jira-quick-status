@@ -33,26 +33,35 @@ async function getJirasText() {
     message = issues.flat().join("\n");
   }
   // count story points
-  const doneId = [...document.getElementsByTagName('h6')]
+  let h6es = [...document.getElementsByTagName('h6')];
+  const inProgressId = h6es
+    .filter(item => item.innerHTML === 'In Progress')
+    .map(item => item.offsetParent.dataset['id'])
+    .pop();
+  const doneId = h6es
     .filter(item => item.innerHTML === 'Done')
     .map(item => item.offsetParent.dataset['id'])
     .pop();
-  const qaId = [...document.getElementsByTagName('h6')]
+  const qaId = h6es
     .filter(item => item.innerHTML === 'In QA')
     .map(item => item.offsetParent.dataset['id'])
     .pop();
-  let doneSum = 0, qaSum = 0;
-  document.querySelectorAll(`li[data-column-id='${doneId}'] .ghx-card-footer`)
-    .forEach((item) => {
-      doneSum += +item.querySelector('.ghx-end aui-badge').innerHTML
-    });
-  document.querySelectorAll(`li[data-column-id='${qaId}'] .ghx-card-footer`)
-    .forEach((item) => {
-      qaSum += +item.querySelector('.ghx-end aui-badge').innerHTML
-    });
+  console.log(inProgressId, doneId, qaId);
+  const getSumFromId = (id) => {
+    let sum = 0;
+    document.querySelectorAll(`li[data-column-id='${id}'] .ghx-card-footer`)
+      .forEach((item) => {
+        sum += +item.querySelector('.ghx-end aui-badge').innerHTML
+      });
+    return sum;
+  }
   chrome.runtime.sendMessage({type: "sendJiras", message});
-  chrome.runtime.sendMessage({type: "sendDoneSum", doneSum});
-  chrome.runtime.sendMessage({type: "sendQASum", qaSum});
+  chrome.runtime.sendMessage({
+    type: "sendSums",
+    inProgressSum: getSumFromId(inProgressId),
+    doneSum: getSumFromId(doneId),
+    qaSum: getSumFromId(qaId)
+  });
 }
 
 // When the button is clicked, set some
@@ -74,11 +83,11 @@ chrome.runtime.onMessage.addListener(
       case "sendJiras":
         document.getElementById('qa-list-textarea').innerHTML = message.message;
         break;
-      case "sendDoneSum":
-        document.getElementById('story-points-done').innerHTML = `<br />${message.doneSum} story points you have done<br />`;
-        break;
-      case "sendQASum":
+      case "sendSums":
+        document.getElementById('story-points-in-progress').innerHTML = `<br />${message.inProgressSum} story points are in progress<br />`;
         document.getElementById('story-points-qa').innerHTML = `${message.qaSum} story points in QA<br />`;
+        document.getElementById('story-points-done').innerHTML = `${message.doneSum} story points you have done<br />`;
+        document.getElementById('story-points-all').innerHTML = `------<br />All: ${message.doneSum + message.inProgressSum + message.qaSum}<br />`;
         break;
       default:
         console.error("Unrecognised message: ", message);
