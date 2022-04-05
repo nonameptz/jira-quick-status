@@ -38,15 +38,18 @@ async function getJirasText() {
     .filter(item => item.innerHTML === 'In Progress')
     .map(item => item.offsetParent.dataset['id'])
     .pop();
-  const doneId = h6es
-    .filter(item => item.innerHTML === 'Done')
+  const resolvedId = h6es
+    .filter(item => item.innerHTML === 'Resolved')
+    .map(item => item.offsetParent.dataset['id'])
+    .pop();
+  const closedId = h6es
+    .filter(item => item.innerHTML === 'Closed')
     .map(item => item.offsetParent.dataset['id'])
     .pop();
   const qaId = h6es
     .filter(item => item.innerHTML === 'In QA')
     .map(item => item.offsetParent.dataset['id'])
     .pop();
-  console.log(inProgressId, doneId, qaId);
   const getSumFromId = (id) => {
     let sum = 0;
     document.querySelectorAll(`li[data-column-id='${id}'] .ghx-card-footer`)
@@ -59,7 +62,7 @@ async function getJirasText() {
   chrome.runtime.sendMessage({
     type: "sendSums",
     inProgressSum: getSumFromId(inProgressId),
-    doneSum: getSumFromId(doneId),
+    doneSum: getSumFromId(resolvedId) + getSumFromId(closedId),
     qaSum: getSumFromId(qaId)
   });
 }
