@@ -12,44 +12,33 @@ async function getJirasText() {
           : resolve(result)
       )
     );
-  let message = 'No statuses selected.. why? :(';
-  const { statuses } = await getStorageData('statuses');
-  if (statuses && statuses.length) {
-    let statusesDom = [...document.getElementsByTagName('h6')]
-      .filter((item) => statuses.includes(item.innerHTML));
-    let ids = statusesDom.map(item => item.offsetParent.dataset['id']);
-    let issues = [];
-    for (let id of ids) {
-      document.querySelectorAll(`li[data-column-id='${id}'] .ghx-issue-fields`)
-        .forEach((item) => {
-          issues.push(
-            item.querySelector('.ghx-key-link-project-key').innerHTML
-            + item.querySelector('.ghx-key-link-issue-num').innerHTML
-            + ': '
-            + item.querySelector('.ghx-summary .ghx-inner').innerHTML
-          )
-        });
-    }
-    message = issues.flat().join("\n");
-  }
+  // let message = 'No statuses selected.. why? :(';
+  // const { statuses } = await getStorageData('statuses');
+  // if (statuses && statuses.length) {
+  //   let statusesDom = [...document.getElementsByTagName('h6')]
+  //     .filter((item) => statuses.includes(item.innerHTML));
+  //   let ids = statusesDom.map(item => item.offsetParent.dataset['id']);
+  //   let issues = [];
+  //   for (let id of ids) {
+  //     document.querySelectorAll(`li[data-column-id='${id}'] .ghx-issue-fields`)
+  //       .forEach((item) => {
+  //         issues.push(
+  //           item.querySelector('.ghx-key-link-project-key').innerHTML
+  //           + item.querySelector('.ghx-key-link-issue-num').innerHTML
+  //           + ': '
+  //           + item.querySelector('.ghx-summary .ghx-inner').innerHTML
+  //         )
+  //       });
+  //   }
+  //   message = issues.flat().join("\n");
+  // }
   // count story points
-  let h6es = [...document.getElementsByTagName('h6')];
-  const inProgressId = h6es
-    .filter(item => item.innerHTML === 'In Progress')
-    .map(item => item.offsetParent.dataset['id'])
-    .pop();
-  const resolvedId = h6es
-    .filter(item => item.innerHTML === 'Resolved')
-    .map(item => item.offsetParent.dataset['id'])
-    .pop();
-  const closedId = h6es
-    .filter(item => item.innerHTML === 'Closed')
-    .map(item => item.offsetParent.dataset['id'])
-    .pop();
-  const qaId = h6es
-    .filter(item => item.innerHTML === 'In QA')
-    .map(item => item.offsetParent.dataset['id'])
-    .pop();
+  const getColumnId = (label) => {
+    return [...document.getElementsByTagName('h6')]
+      .filter(item => item.innerHTML === label)
+      .map(item => item.offsetParent.dataset['id'])
+      .pop();
+  };
   const getSumFromId = (id) => {
     let sum = 0;
     document.querySelectorAll(`li[data-column-id='${id}'] .ghx-card-footer`)
@@ -58,12 +47,12 @@ async function getJirasText() {
       });
     return sum;
   }
-  chrome.runtime.sendMessage({type: "sendJiras", message});
+  // chrome.runtime.sendMessage({type: "sendJiras", message});
   chrome.runtime.sendMessage({
     type: "sendSums",
-    inProgressSum: getSumFromId(inProgressId),
-    doneSum: getSumFromId(resolvedId) + getSumFromId(closedId),
-    qaSum: getSumFromId(qaId)
+    inProgressSum: getSumFromId(getColumnId('In Progress')),
+    doneSum: getSumFromId(getColumnId('Resolved')) + getSumFromId(getColumnId('Closed')),
+    qaSum: getSumFromId(getColumnId('In QA')) + getSumFromId(getColumnId('In Review'))
   });
 }
 
@@ -83,9 +72,9 @@ statusButton.addEventListener("click", async () => {
 chrome.runtime.onMessage.addListener(
   function(message) {
     switch(message.type) {
-      case "sendJiras":
-        document.getElementById('qa-list-textarea').innerHTML = message.message;
-        break;
+      // case "sendJiras":
+      //   document.getElementById('qa-list-textarea').innerHTML = message.message;
+      //   break;
       case "sendSums":
         document.getElementById('story-points-in-progress').innerHTML = `<br />${message.inProgressSum} story points are in progress<br />`;
         document.getElementById('story-points-qa').innerHTML = `${message.qaSum} story points in QA<br />`;
